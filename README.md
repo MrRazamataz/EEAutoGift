@@ -7,6 +7,6 @@ This script uses selenium to automate the process of gifting data from one numbe
    * `FROM_NUMBER` - put the phone number of the person whose data you want to gift elsewhere. 
    * `TO_NUMBER` - put the phone number of the person you're **sending** the data to.
    * `AMOUNT` - put the amount, in **GB** that you wish to send. e.g. for `512`MB put `0.5`. 
-2. Set up the script to run whenever your contract renews each month (or whenever). The script provides multiple ways of automatically setting methods of this up, see below if you want.
+2. Set up the script to run whenever your contract renews each month (or whenever). The script provides multiple ways of automatically setting methods of this up, see below if you want (coming soon).
 3. Then, hopefully you will receive a text every month that you have been gifted data!  
 

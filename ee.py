@@ -1,9 +1,7 @@
 from selenium import webdriver
 from selenium.common import TimeoutException
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.service import Service
-from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.firefox.options import Options
@@ -114,6 +112,36 @@ def main(amount: float, email: str, password: str, from_number: str, to_number: 
     finally:
         driver.quit()
 
+def add_crontab():
+    print("This option assumes 0 knowledge of cron. If you know how to setup a cronjob, do it manually for more control on when the script runs.")
+    # check if on linux
+    if os.name != 'posix':
+        print("The automatic setup of cron is only available on Linux, sorry.")
+        exit()
+    pm2_or_crontab = input("Would you like to setup cron with PM2 or crontab? (pm2/crontab). Default is crontab (should be installed on your system already).").lower()
+    if not pm2_or_crontab in ["pm2", "crontab"]:
+        pm2_or_crontab = "crontab"
+    print("----------------------")
+    print("WARNING: \nIF THE DAY YOU ENTER OF THE MONTH DOESN'T EXIST IN EVERY MONTH, THE SCRIPT WILL NOT RUN ON THOSE MONTHS!")
+    print("----------------------")
+    day_of_month = input("What day of the month does your contract renew? ")
+    if not day_of_month.isdigit():
+        print("Please enter a valid number.")
+        exit()
+    if int(day_of_month) > 31 or int(day_of_month) < 1:
+        print("Please enter a valid day of the month.")
+        exit()
+    if pm2_or_crontab == "pm2":
+        os.system(f'pm2 start ee.py --name EEAutoGift --interpreter python3 --cron "0 0 {day_of_month} * *"')
+        os.system('pm2 save')
+        print("PM2 cronjob added. It will run every month on the day you specified.")
+        return
+    if pm2_or_crontab == "crontab":
+        path = os.path.realpath(__file__)
+        os.system(f'(crontab -l 2>/dev/null; echo "0 0 {day_of_month} * * {path}") | crontab -')
+        print("Cronjob added. It will run every month on the day you specified.")
+        return
+    print("For whatever reason, no cronjob was added. Make sure you provided the correct inputs.")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog="EEAutoGift", description="Automatically gift data from one profile to another on your EE account.", epilog="~ Developed by MrRazamataz (razbot.xyz)")
@@ -122,8 +150,11 @@ if __name__ == '__main__':
     parser.add_argument("--from-number", help="The number you're gifting data from.")
     parser.add_argument("--to-number", help="The number you're gifting data to.")
     parser.add_argument("--amount", help="The amount of data you're gifting. In GB.", type=float)
+    parser.add_argument("--setup-cron", help="Helper to add a crontab to run the script every month on the day your contract renews.", action="store_true")
     args = parser.parse_args()
-
+    if args.setup_cron:
+        add_crontab()
+        exit()
     if not os.path.exists(".env"):
         print("Please rename .env.example to .env and fill in the required fields.")
         exit()
@@ -149,7 +180,6 @@ if __name__ == '__main__':
         from_number = args.from_number
     if args.to_number:
         to_number = args.to_number
-    # check inputs
     if not amount or not email or not password or not from_number or not to_number:
         print("Please provide all required fields in .env or use CLI args.")
         exit()
